@@ -3,20 +3,17 @@ import ReactDOM from 'react-dom';
 import AppHeader from "./components/AppHeader";
 import TriedSearchBox from "./components/TriedSearchBox";
 import ClinicalNote from "./components/ClinicalNote";
-import Guideline from "./components/Guideline";
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-import Backend from "./apis/Backend";
+// import Backend from "./db/Backend";
 import reportWebVitals from './reportWebVitals';
 
 ReactDOM.render(
   <React.StrictMode>
       <AppHeader/>
       <TriedSearchBox/>
-
       <ClinicalNote/>
       <hr />
-      <Guideline/>
       {/*<Backend/>*/}
   </React.StrictMode>,
   document.getElementById('root')
