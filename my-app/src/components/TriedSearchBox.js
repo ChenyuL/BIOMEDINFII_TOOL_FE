@@ -10,6 +10,7 @@ import {
 } from "react-bootstrap";
 
 // Chenyu told me to add this
+// Tanupa told me to add this
 
 // const disease = [
 //     {name: 'Noonan Syndrome', ref: "https://rarediseases.info.nih.gov/diseases/10955/noonan-syndrome"},
