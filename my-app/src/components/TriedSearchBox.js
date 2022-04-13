@@ -32,10 +32,10 @@ export default function TriedSearchBox() {
     ];
 
     const disease = [
+        {name: 'Cardio-facio-cutaneous Syndrome', PharmGKBID: 'PA152208657'},
         {name: 'Crohn\'s Disease', PharmGKBID: 'PA443815'},
         {name: 'Noonan\'s Syndrome', PharmGKBID: 'PA445123'},
         {name: 'Waardenburg\'s Syndrome', PharmGKBID: 'PA446058'},
-        {name: 'Cardio-facio-cutaneous Syndrome', PharmGKBID: 'PA152208657'},
         {name: 'Waardenburg\'s Syndrome', PharmGKBID: 'PA446058'},
     ]
 
@@ -117,7 +117,7 @@ export default function TriedSearchBox() {
                     {
                         completions.diseases?.map((completion, index) => {
                             return (<Dropdown.Item key={index} value={completion.PharmGKBID}
-                                                   onClick={callDiseaseApi(completion.PharmGKBID)}>{completion.name}</Dropdown.Item>)
+                                                   onClick={e => callDiseaseApi(completion.PharmGKBID)}>{completion.name}</Dropdown.Item>)
                         })
                     }
                     <Dropdown.Divider/>
@@ -125,7 +125,7 @@ export default function TriedSearchBox() {
                     {
                         completions.drugs?.map((completion, index) => {
                             return (<Dropdown.Item key={index} value={completion.PharmGKBID}
-                                                   onClick={callDrugApi(completion.PharmGKBID)}>{completion.name}</Dropdown.Item>)
+                                                   onClick={e => callDrugApi(completion.PharmGKBID)}>{completion.name}</Dropdown.Item>)
                         })
                     }
                 </DropdownButton>
