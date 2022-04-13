@@ -59,12 +59,13 @@ export default function TriedSearchBox() {
         setResponse(r.data);
     }
 
+
     useEffect(() => {
         setCompletions({
             drugs: drugsTrie.search(search),
             diseases: diseaseTrie.search(search)
         });
-    }, [search]);
+    }, [search]); // eslint-disable-line
 
     useEffect(() => {
         if (response) {
