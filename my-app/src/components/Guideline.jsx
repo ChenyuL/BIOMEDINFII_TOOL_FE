@@ -34,46 +34,44 @@ import { db } from "../db/db";
 // useEffect(() => formatQuery2table(data), [data]);
 
 export default function GetRareDiseases(note) {
-    let [phenotype, setPhenotype]= useState([]);
+    const [presentation, setPresentation]= useState([]);
+    // const [missing, setMissing] = useState([]);
     const text = note.note;
 
     const [show, setShow] = useState(false);
     const handleClose = () => setShow(false);
     const handleShow = () => { checkNoteforSymptoms(); setShow(true)};
 
-    const symptoms = useLiveQuery(async () => {
-        return await db.symptom.toArray();
+    const phenotypes = useLiveQuery(async () => {
+        return await db.phenotype.toArray();
     });
 
     const checkNoteforSymptoms = () => {
-        let presentation = [];
-        for (let symptom of symptoms) {
-            if (text.toLowerCase().includes(symptom.name.toLowerCase())) {
-                presentation.push(symptom.id);
+        let currentPresentation = [];
+        for (let pheno of phenotypes) {
+            if (text.toLowerCase().includes(pheno.name.toLowerCase())) {
+                currentPresentation.push(pheno.id);
             }
         }
-        setPhenotype(presentation);
-        console.log(phenotype);
+        setPresentation(currentPresentation);
+        console.log(presentation);
     }
 
     const diseases = useLiveQuery(async () => {
         let data = [];
-        if (phenotype.length > 0) {
-            data = await db.disease.where("symptomIds").anyOf(phenotype).distinct().toArray();
+        if (presentation.length > 0) {
+            data = await db.disease.where("phenotypeIds").anyOf(presentation).distinct().toArray();
         }
 
         if (data.length > 0) {
-            for (let d of data) {
-                d.symptoms = await Promise.all(d.symptomIds.map(async (s) => await db.symptom.get(s)));
+            for await (let d of data) {
+                d.phenotypes = await Promise.all(d.phenotypeIds.map(async (id) => await db.phenotype.get(id)));
+                d.missing =  await Promise.all(d.phenotypeIds.filter((id) => presentation.includes(id)).map(async (s) => await db.phenotype.get(s)));
             }
         }
         console.log(data);
         return data;
-    }, [phenotype]);
-
-    useEffect(() =>{
-
-    }, [phenotype])
+    }, [presentation]);
 
     return (
         <div>
@@ -83,83 +81,117 @@ export default function GetRareDiseases(note) {
                     <Offcanvas.Title>Matching Rare Diseases:</Offcanvas.Title>
                 </Offcanvas.Header>
                 <Offcanvas.Body>
-                    <Accordion defaultActiveKey={['0']}>
-                        <Accordion.Item eventKey="0">
-                            <Accordion.Header>Supporting Information:</Accordion.Header>
-                            <Accordion.Body>
-                                <Table responsive='md' striped bordered hover variant="dark">
-                                    <thead>
-                                    <tr>
-                                        <th key="Disease"> Disease / Syndrome </th>
-                                        <th key="Supporting"> Supporting Elements </th>
-                                        {/*<th key="Missing"> Missing Elements </th>*/}
-                                    </tr>
-                                    </thead>
-                                    <tbody>
+                    { (diseases?.length === 0) && <Card border="warning">
+                        <Card.Body>
+                            <Card.Title>No matches where found</Card.Title>
+                            {/*<Card.Subtitle className="mb-2 text-muted">Try again:</Card.Subtitle>*/}
+                            <Card.Text>
+                                No rare diseases the match phenotype extracted from the clinical note where found. Try to describe the same phenotypic concepts in the clinical note text area with different terms.
+
+                            </Card.Text>
+                        </Card.Body>
+                        <Card.Footer>Other sources of information:
+                            <Card.Link href="https://rarediseases.org/">NORD: Rare Disease Database</Card.Link>
+                            <Card.Link href="https://rarediseases.info.nih.gov/">Genetic and Rare Diseases Information Center (GARD)</Card.Link>
+                        </Card.Footer>
+                    </Card>
+
+                    }
+                    {
+                        !(diseases?.length === 0) &&
+                        <Accordion defaultActiveKey={['0']}>
+                            <Accordion.Item eventKey="0">
+                                <Accordion.Header>Supporting Information:</Accordion.Header>
+                                <Accordion.Body>
+                                    <Table responsive='md' striped bordered hover variant="dark">
+                                        <thead>
+                                        <tr>
+                                            <th key="Disease"> Disease / Syndrome</th>
+                                            <th key="Supporting"> Supporting Elements</th>
+                                            <th key="Missing"> Missing Elements</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
                                         {
                                             diseases?.map((d) => {
                                                 return (
-                                                    <tr>
+                                                    <tr className={{overflow: "scroll"}}>
                                                         <td key={"d_".concat(d.id)}> {d.name} </td>
-                                                        <td key={"s_".concat(d.id)}>
+                                                        <td key={"p_".concat(d.id)}>
                                                             <ul>
-                                                            {
-                                                                d.symptoms.map((s)=> {
-                                                                    return (<li>{s?.name}</li>);
-                                                                })
-                                                            }
+                                                                {
+                                                                    d.phenotypes.map((p) => {
+                                                                        return (<li>{p?.name}</li>);
+                                                                    })
+                                                                }
                                                             </ul>
                                                         </td>
-                                                        {/*<td key={d.id}> {d.name} </td>*/}
+                                                        <td key={"m_".concat(d.id)}>
+                                                            <ul>
+                                                                {
+                                                                    d.missing.map((p) => {
+                                                                        return (<li>{p?.name}</li>);
+                                                                    })
+                                                                }
+                                                            </ul>
+                                                        </td>
                                                     </tr>
                                                 );
                                             })
                                         }
-                                    </tbody>
-                                </Table>
-                            </Accordion.Body>
-                        </Accordion.Item>
-                        {
-                            diseases?.map((disease) => {
-                                return (
-                                    <Accordion.Item eventKey={disease.id}>
-                                        <Accordion.Header>{disease.name}:</Accordion.Header>
-                                        <Accordion.Body>
-                                            <Card className="justify-content-center" border="info"  style={{ width: 'auto' }}>
-                                                <Card.Header>
-                                                    <Carousel variant="dark" style={{ width: '100%', height: '20rem', overflow: "scroll"}}>
+                                        </tbody>
+                                    </Table>
+                                </Accordion.Body>
+                            </Accordion.Item>
+                            {
+                                diseases?.map((disease) => {
+                                    return (
+                                        <Accordion.Item eventKey={disease.id}>
+                                            <Accordion.Header>{disease.name}:</Accordion.Header>
+                                            <Accordion.Body>
+                                                <Card className="justify-content-center" border="info"
+                                                      style={{width: 'auto'}}>
+                                                    <Card.Header>
+                                                        <Carousel variant="dark" style={{
+                                                            width: '100%',
+                                                            height: '20rem',
+                                                            overflow: "scroll"
+                                                        }}>
+                                                            {
+                                                                (disease.images).map((image) => {
+                                                                    return (
+                                                                        <Carousel.Item interval={5000}>
+                                                                            <center>
+                                                                                <a href={image}>
+                                                                                    <img className="d-block w-100"
+                                                                                         src={image} alt={image}/>
+                                                                                </a>
+                                                                            </center>
+                                                                        </Carousel.Item>
+                                                                    )
+                                                                })
+                                                            }
+                                                        </Carousel>
+                                                    </Card.Header>
+                                                    <Card.Body>
                                                         {
-                                                            (disease.images).map((image) => {
-                                                                return (
-                                                                    <Carousel.Item interval={5000}>
-                                                                        <center>
-                                                                            <a href={image}>
-                                                                                <img className="d-block w-100" src={image} alt={image} />
-                                                                            </a>
-                                                                        </center>
-                                                                    </Carousel.Item>
-                                                                )
+                                                            disease.description.split("\n").map((description) => {
+                                                                return (<Card.Text>{description}</Card.Text>);
                                                             })
                                                         }
-                                                    </Carousel>
-                                                </Card.Header>
-                                                <Card.Body>
-                                                    {
-                                                        disease.description.split("\n").map((description) => {
-                                                            return (<Card.Text>{description}</Card.Text>);
-                                                        })
-                                                    }
-                                                </Card.Body>
-                                                <Card.Body>
-                                                    <Card.Link href={disease.ref}>More info from: rarediseases.info.nih.gov</Card.Link>
-                                                </Card.Body>
-                                            </Card>
-                                        </Accordion.Body>
-                                    </Accordion.Item>
-                                );
-                            })
-                        }
-                    </Accordion>
+                                                    </Card.Body>
+                                                    <Card.Body>
+                                                        <Card.Link href={disease.ref}>More info from:
+                                                            rarediseases.info.nih.gov</Card.Link>
+                                                    </Card.Body>
+                                                </Card>
+                                            </Accordion.Body>
+                                        </Accordion.Item>
+                                    );
+                                })
+                            }
+                        </Accordion>
+                    }
                 </Offcanvas.Body>
             </Offcanvas>
         </div>
