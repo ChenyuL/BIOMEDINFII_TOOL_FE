@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {Accordion, Button, Card, Table, Offcanvas, Carousel} from "react-bootstrap";
 
 import { useLiveQuery } from "dexie-react-hooks";
@@ -65,8 +65,9 @@ export default function GetRareDiseases(note) {
 
         if (data.length > 0) {
             for await (let d of data) {
-                d.phenotypes = await Promise.all(d.phenotypeIds.map(async (id) => await db.phenotype.get(id)));
-                d.missing =  await Promise.all(d.phenotypeIds.filter((id) => presentation.includes(id)).map(async (s) => await db.phenotype.get(s)));
+                // console.log(d.phenotypeIds.filter((id) => !presentation.includes(id)));
+                d.phenotypes = await Promise.all(d.phenotypeIds.filter((id) => presentation.includes(id)).map(async (id) => await db.phenotype.get(id)));
+                d.missing =  await Promise.all(d.phenotypeIds.filter((id) => !presentation.includes(id)).map(async (s) => await db.phenotype.get(s)));
             }
         }
         // console.log(data);
@@ -76,7 +77,7 @@ export default function GetRareDiseases(note) {
     return (
         <div>
             <Button variant="link" onClick={handleShow} className="me-2" size="sm">List Rare Diseases that might match clinical note</Button>
-            <Offcanvas show={show} onHide={handleClose} placement='end' props= {{scroll: true, backdrop: true}} style={{ width: '50rem' }}>
+            <Offcanvas show={show} onHide={handleClose} placement='end' props= {{scroll: true, backdrop: true}} style={{ width: '60rem' }}>
                 <Offcanvas.Header closeButton>
                     <Offcanvas.Title>Matching Rare Diseases:</Offcanvas.Title>
                 </Offcanvas.Header>
@@ -103,7 +104,7 @@ export default function GetRareDiseases(note) {
                             <Accordion.Item eventKey="0">
                                 <Accordion.Header>Supporting Information:</Accordion.Header>
                                 <Accordion.Body>
-                                    <Table responsive='md' striped bordered hover variant="dark">
+                                    <Table size="sm" responsive striped bordered hover variant="dark">
                                         <thead>
                                         <tr>
                                             <th key="Disease"> Disease / Syndrome</th>
@@ -111,11 +112,11 @@ export default function GetRareDiseases(note) {
                                             <th key="Missing"> Missing Elements</th>
                                         </tr>
                                         </thead>
-                                        <tbody>
+                                        <tbody style={{height: "0.5rem", overflow: "scroll"}}>
                                         {
                                             diseases?.map((d) => {
                                                 return (
-                                                    <tr className={{overflow: "scroll"}}>
+                                                    <tr>
                                                         <td key={"d_".concat(d.id)}> {d.name} </td>
                                                         <td key={"p_".concat(d.id)}>
                                                             <ul>
