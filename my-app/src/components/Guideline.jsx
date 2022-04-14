@@ -1,4 +1,4 @@
-import React,  {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Accordion, Button, Card, Table, Offcanvas, Carousel} from "react-bootstrap";
 
 import { useLiveQuery } from "dexie-react-hooks";
@@ -33,32 +33,47 @@ import { db } from "../db/db";
 // useEffect(() => callApi(), []);
 // useEffect(() => formatQuery2table(data), [data]);
 
-export function RareDiseaseInfo () {
-    // let [data, setData]= useState([]);
+export default function GetRareDiseases(note) {
+    let [phenotype, setPhenotype]= useState([]);
+    const text = note.note;
 
     const [show, setShow] = useState(false);
     const handleClose = () => setShow(false);
-    const handleShow = () => setShow(true);
+    const handleShow = () => { checkNoteforSymptoms(); setShow(true)};
 
-    const diseases = useLiveQuery(async () => {
-        const data = await db.disease.toArray();
-        for (let d of data) {
-            d.symptoms = await Promise.all(
-                d.symptoms.map(async (s)=> {
-                    try {
-                        const symptom = await db.symptom.get(s);
-                        if (symptom) return (symptom);
-                    } catch (e) {
-                        console.debug(e);
-                    }
-                })
-            )
-        }
-
-        return data;
+    const symptoms = useLiveQuery(async () => {
+        return await db.symptom.toArray();
     });
 
+    const checkNoteforSymptoms = () => {
+        let presentation = [];
+        for (let symptom of symptoms) {
+            if (text.toLowerCase().includes(symptom.name.toLowerCase())) {
+                presentation.push(symptom.id);
+            }
+        }
+        setPhenotype(presentation);
+        console.log(phenotype);
+    }
 
+    const diseases = useLiveQuery(async () => {
+        let data = [];
+        if (phenotype.length > 0) {
+            data = await db.disease.where("symptomIds").anyOf(phenotype).distinct().toArray();
+        }
+
+        if (data.length > 0) {
+            for (let d of data) {
+                d.symptoms = await Promise.all(d.symptomIds.map(async (s) => await db.symptom.get(s)));
+            }
+        }
+        console.log(data);
+        return data;
+    }, [phenotype]);
+
+    useEffect(() =>{
+
+    }, [phenotype])
 
     return (
         <div>
@@ -148,11 +163,5 @@ export function RareDiseaseInfo () {
                 </Offcanvas.Body>
             </Offcanvas>
         </div>
-    );
-}
-
-export default function GetRareDiseases() {
-    return (
-            <RareDiseaseInfo/>
     );
 }
