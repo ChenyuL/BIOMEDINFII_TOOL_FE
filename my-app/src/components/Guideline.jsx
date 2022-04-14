@@ -54,7 +54,7 @@ export default function GetRareDiseases(note) {
             }
         }
         setPresentation(currentPresentation);
-        console.log(presentation);
+        // console.log(presentation);
     }
 
     const diseases = useLiveQuery(async () => {
@@ -69,7 +69,7 @@ export default function GetRareDiseases(note) {
                 d.missing =  await Promise.all(d.phenotypeIds.filter((id) => presentation.includes(id)).map(async (s) => await db.phenotype.get(s)));
             }
         }
-        console.log(data);
+        // console.log(data);
         return data;
     }, [presentation]);
 
