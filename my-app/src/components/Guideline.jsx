@@ -4,7 +4,6 @@ import {Accordion, Button, Card, Table, Offcanvas, Carousel} from "react-bootstr
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../db/db";
 
-
 // async function formatQuery2table (query) {
 //     // let jsonHeaders = Object.keys(query);
 //     // jsonHeaders = await Promise.all(jsonHeaders.map(async (v) => { return {Header: v.toUpperCase(), accessor: v} }));
@@ -64,13 +63,20 @@ export default function GetRareDiseases(note) {
         }
 
         if (data.length > 0) {
-            for await (let d of data) {
-                // console.log(d.phenotypeIds.filter((id) => !presentation.includes(id)));
-                d.phenotypes = await Promise.all(d.phenotypeIds.filter((id) => presentation.includes(id)).map(async (id) => await db.phenotype.get(id)));
-                d.missing =  await Promise.all(d.phenotypeIds.filter((id) => !presentation.includes(id)).map(async (s) => await db.phenotype.get(s)));
-            }
+            data = await Promise.all(data.map( async (d) => {
+                d.present = [];
+                d.absent = [];
+                await Promise.all(d.phenotypeIds.map(async (id) => {
+                    let value = await db.phenotype.get(id);
+                    if (presentation.indexOf(id) > -1) {
+                        d.present.push(value);
+                    } else {
+                        d.absent.push(value);
+                    }
+                }));
+                return d;
+            }));
         }
-        // console.log(data);
         return data;
     }, [presentation]);
 
@@ -96,7 +102,6 @@ export default function GetRareDiseases(note) {
                             <Card.Link href="https://rarediseases.info.nih.gov/">Genetic and Rare Diseases Information Center (GARD)</Card.Link>
                         </Card.Footer>
                     </Card>
-
                     }
                     {
                         !(diseases?.length === 0) &&
@@ -112,7 +117,7 @@ export default function GetRareDiseases(note) {
                                             <th key="Missing"> Missing Elements</th>
                                         </tr>
                                         </thead>
-                                        <tbody style={{height: "0.5rem", overflow: "scroll"}}>
+                                        <tbody>
                                         {
                                             diseases?.map((d) => {
                                                 return (
@@ -121,8 +126,8 @@ export default function GetRareDiseases(note) {
                                                         <td key={"p_".concat(d.id)}>
                                                             <ul>
                                                                 {
-                                                                    d.phenotypes.map((p) => {
-                                                                        return (<li>{p?.name}</li>);
+                                                                    d.present.map((p, index) => {
+                                                                        return (<li key={index}>{p?.name}</li>);
                                                                     })
                                                                 }
                                                             </ul>
@@ -130,8 +135,8 @@ export default function GetRareDiseases(note) {
                                                         <td key={"m_".concat(d.id)}>
                                                             <ul>
                                                                 {
-                                                                    d.missing.map((p) => {
-                                                                        return (<li>{p?.name}</li>);
+                                                                    d.absent.map((p, index) => {
+                                                                        return (<li key={index}>{p?.name}</li>);
                                                                     })
                                                                 }
                                                             </ul>
