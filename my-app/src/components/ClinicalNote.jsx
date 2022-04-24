@@ -40,7 +40,7 @@ export default function ClinicalNote() {
                     <Form onSubmit={handleSubmit}>
                         <Form.Group className="mb-12" controlId="exampleForm.ControlTextarea1">
                             <Form.Control as="textarea"
-                                          rows={12}
+                                          rows={22}
                                           value={text}
                                           placeholder={ph}
                                           onChange={e => {setText(e.target.value)}} />

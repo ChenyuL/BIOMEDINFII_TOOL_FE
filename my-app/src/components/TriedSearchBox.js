@@ -7,6 +7,7 @@ import {
     Table,
     Dropdown,
     DropdownButton,
+    Button, Container
 } from "react-bootstrap";
 
 // Chenyu told me to add this
@@ -39,7 +40,8 @@ export default function TriedSearchBox() {
         {name: 'Crohn\'s Disease', PharmGKBID: 'PA443815'},
         {name: 'Noonan\'s Syndrome', PharmGKBID: 'PA445123'},
         {name: 'Waardenburg\'s Syndrome', PharmGKBID: 'PA446058'},
-        {name: 'Waardenburg\'s Syndrome', PharmGKBID: 'PA446058'},
+        // {name: 'Waardenburg\'s Syndrome', PharmGKBID: 'PA446058'},
+        {name: 'CHARGE Syndrome', PharmGKBID: 'PA145007176'}
     ]
 
     const drugsTrie = new TrieSearch(['name', 'PharmGKBID']);
@@ -92,85 +94,91 @@ export default function TriedSearchBox() {
 
     return (
         <>
-            <InputGroup className="d-flex mb-12 space-around">
-                <FloatingLabel controlId="floatingSelectGrid" label="Lookup drug or disease">
-                    <FormControl
-                        type="input"
-                        value={search}
-                        className="me-1"
-                        aria-label="Search"
-                        onInput={ (e) => {
-                            // console.log(e.target.value);
-                            setSearch(e.target.value);
-                        }
-                    }
-                    />
-                </FloatingLabel>
-                <DropdownButton
-                    variant="outline-dark"
-                    drop="end"
-                    title="Matches"
-                    id="input-group-dropdown-2"
-                    align="start"
-                    size="md"
-                    expand="lg"
-                    // show={display}
-                    // autoClose="outside"
-                >
-                    <Dropdown.Header> Diseases </Dropdown.Header>
-                    {
-                        completions.diseases?.map((completion, index) => {
-                            return (<Dropdown.Item key={index} value={completion.PharmGKBID}
-                                                   onClick={e => callDiseaseApi(completion.PharmGKBID)}>{completion.name}</Dropdown.Item>)
-                        })
-                    }
-                    <Dropdown.Divider/>
-                    <Dropdown.Header> Drugs </Dropdown.Header>
-                    {
-                        completions.drugs?.map((completion, index) => {
-                            return (<Dropdown.Item key={index} value={completion.PharmGKBID}
-                                                   onClick={e => callDrugApi(completion.PharmGKBID)}>{completion.name}</Dropdown.Item>)
-                        })
-                    }
-                </DropdownButton>
-            </InputGroup>
-            {display && (
-                <Table  striped bordered hover responsive size='sm' variant="secondary">
-                    <thead>
-                    <tr>
-                        {
-                            Object.keys(response).map((h) => {
-                                return (<th> {h} </th>)
-                            })
-                        }
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        {
-                            Object.values(response).map((r, index) => {
-                                if (typeof r ===  "object") {
-                                    if (Array.isArray(r)) {
-                                        return (<td key={index}>
-                                            <ul>
-                                                {r.map((item) => (<li>{JSON.stringify(item)}</li>))}
-                                            </ul>
-                                        </td>);
 
-                                    } else {
-                                        return (<td key={index}> {JSON.stringify(r, undefined, 2)} </td>);
-                                    }
+        <InputGroup className="d-flex mb-12 space-around">
+            <FloatingLabel controlId="floatingSelectGrid" label="Lookup drug or disease">
+                <FormControl
+                    type="input"
+                    value={search}
+                    className="me-1"
+                    aria-label="Search"
+                    onInput={ (e) => {
+                        // console.log(e.target.value);
+                        setSearch(e.target.value);
+                    }
+                }
+                />
+            </FloatingLabel>
+            <DropdownButton
+                variant="outline-dark"
+                drop="end"
+                title="Matches"
+                id="input-group-dropdown-2"
+                align="start"
+                size="md"
+                expand="lg"
+                // show={display}
+                // autoClose="outside"
+            >
+                <Dropdown.Header> Diseases </Dropdown.Header>
+                {
+                    completions.diseases?.map((completion, index) => {
+                        return (<Dropdown.Item key={index} value={completion.PharmGKBID}
+                                               onClick={e => callDiseaseApi(completion.PharmGKBID)}>{completion.name}</Dropdown.Item>)
+                    })
+                }
+                <Dropdown.Divider/>
+                <Dropdown.Header> Drugs </Dropdown.Header>
+                {
+                    completions.drugs?.map((completion, index) => {
+                        return (<Dropdown.Item key={index} value={completion.PharmGKBID}
+                                               onClick={e => callDrugApi(completion.PharmGKBID)}>{completion.name}</Dropdown.Item>)
+                    })
+                }
+            </DropdownButton>
+        </InputGroup>
+            <Container>
+                {display && (
+                    <>
+                    {/*<Button variant="secondary">Hide Results</Button>*/}
+                    <Table  striped bordered hover responsive size='sm' variant="secondary"  onClick={() => setDisplay(false)}>
+                        <thead>
+                            <tr>
+                            {
+                                Object.keys(response).map((h) => {
+                                    return (<th> {h} </th>)
+                                })
+                            }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                {
+                                    Object.values(response).map((r, index) => {
+                                        if (typeof r ===  "object") {
+                                            if (Array.isArray(r)) {
+                                                return (
+                                                    <td key={index}>
+                                                        <ul>
+                                                            {r.map((item) => (<li>{JSON.stringify(item)}</li>))}
+                                                        </ul>
+                                                    </td>
+                                                );
 
-                                } else {
-                                    return (<td key={index}> {r} </td>);
+                                            } else {
+                                                return (<td key={index}> {JSON.stringify(r, undefined, 2)} </td>);
+                                            }
+                                        } else {
+                                            return (<td key={index}> {r} </td>);
+                                        }
+                                    })
                                 }
-
-                            })
-                        }
-                    </tr>
-                    </tbody>
-                </Table>
-            )}
+                            </tr>
+                        </tbody>
+                    </Table>
+                    </>
+                )}
+            </Container>
         </>
     );
 };

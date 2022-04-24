@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {Accordion, Button, Card, Table, Offcanvas, Carousel} from "react-bootstrap";
+import {Accordion, Button, Card, Table, Offcanvas, Carousel, Nav} from "react-bootstrap";
 
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../db/db";
@@ -34,7 +34,7 @@ import { db } from "../db/db";
 
 export default function GetRareDiseases(note) {
     const [presentation, setPresentation]= useState([]);
-    // const [missing, setMissing] = useState([]);
+    const [active, setActive] = useState('#Summary');
     const text = note.note;
 
     const [show, setShow] = useState(false);
@@ -157,39 +157,62 @@ export default function GetRareDiseases(note) {
                                             <Accordion.Body>
                                                 <Card className="justify-content-center" border="info"
                                                       style={{width: 'auto'}}>
+                                                    <Carousel variant="dark" style={{
+                                                        width: '100%',
+                                                        height: '20rem',
+                                                        overflow: "scroll"
+                                                    }}>
+                                                        {
+                                                            (disease.images).map((image) => {
+                                                                return (
+                                                                    <Carousel.Item interval={5000}>
+                                                                        <center>
+                                                                            <a href={image}>
+                                                                                <img className="d-block w-100"
+                                                                                     src={image} alt={image}/>
+                                                                            </a>
+                                                                        </center>
+                                                                    </Carousel.Item>
+                                                                )
+                                                            })
+                                                        }
+                                                    </Carousel>
                                                     <Card.Header>
-                                                        <Carousel variant="dark" style={{
-                                                            width: '100%',
-                                                            height: '20rem',
-                                                            overflow: "scroll"
-                                                        }}>
-                                                            {
-                                                                (disease.images).map((image) => {
-                                                                    return (
-                                                                        <Carousel.Item interval={5000}>
-                                                                            <center>
-                                                                                <a href={image}>
-                                                                                    <img className="d-block w-100"
-                                                                                         src={image} alt={image}/>
-                                                                                </a>
-                                                                            </center>
-                                                                        </Carousel.Item>
-                                                                    )
-                                                                })
-                                                            }
-                                                        </Carousel>
+                                                        <Nav variant="tabs" defaultActiveKey="#Summary">
+                                                            <Nav.Item>
+                                                                <Nav.Link href="#Summary" onClick={() => setActive("#Summary")}>Summary</Nav.Link>
+                                                            </Nav.Item>
+                                                            <Nav.Item>
+                                                                <Nav.Link href="#Therapies" onClick={() => setActive("#Therapies")}>Therapies</Nav.Link>
+                                                            </Nav.Item>
+                                                            <Nav.Item>
+                                                                <Nav.Link href="#Resources" onClick={() => setActive("#Resources")}>Resources</Nav.Link>
+                                                            </Nav.Item>
+                                                        </Nav>
                                                     </Card.Header>
                                                     <Card.Body>
                                                         {
-                                                            disease.description.split("\n").map((description) => {
-                                                                return (<Card.Text>{description}</Card.Text>);
-                                                            })
+                                                             {
+                                                                '#Summary':
+                                                                    disease.description.split("\n").map((description) => {
+                                                                        return (<Card.Text>{description}</Card.Text>);
+                                                                    }),
+
+                                                                '#Therapies':
+                                                                    disease.treatment.split("\n").map((description) => {
+                                                                        return (<Card.Text>{description}</Card.Text>);
+                                                                    }),
+                                                                '#Resources':
+                                                                    disease.resources.split("\n").map((description) => {
+                                                                        return (<Card.Text>{description}</Card.Text>);
+                                                                    })
+                                                            }[active]
                                                         }
                                                     </Card.Body>
-                                                    <Card.Body>
+                                                    <Card.Footer>
                                                         <Card.Link href={disease.ref}>More info from:
                                                             rarediseases.info.nih.gov</Card.Link>
-                                                    </Card.Body>
+                                                    </Card.Footer>
                                                 </Card>
                                             </Accordion.Body>
                                         </Accordion.Item>

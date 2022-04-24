@@ -1,9 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import AppHeader from "./components/AppHeader";
 import TriedSearchBox from "./components/TriedSearchBox";
 import ClinicalNote from "./components/ClinicalNote";
-import 'bootstrap/dist/css/bootstrap.min.css';
+import Footer from "./components/Footer";
 
 // import Backend from "./db/Backend";
 import reportWebVitals from './reportWebVitals';
@@ -15,6 +16,7 @@ ReactDOM.render(
       <ClinicalNote/>
       <hr />
       {/*<Backend/>*/}
+      <Footer/>
   </React.StrictMode>,
   document.getElementById('root')
 );
